@@ -1,10 +1,16 @@
 const fs = require('node:fs') // Can make file system requests
 const path = require('node:path') // Used to facilitated using paths
 
-const { Client, Collection, GatewayIntentBits } = require('discord.js')
+const { Client, Collection, GatewayIntentBits} = require('discord.js')
+const { Player } = require('discord-player')
 const { token } = require('./config.json')
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+const client = new Client({
+  intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.GuildVoiceStates
+  ]})
 
 client.commands = new Collection()
 const commandsPath = path.join(__dirname, 'commands')
@@ -16,6 +22,15 @@ for (const file of commandFiles) {
 
   client.commands.set(command.data.name, command)
 }
+
+client.player = new Player (client, {
+    ytdlOptions: {
+        quality: "highestaudio",
+        highWaterMark: 1 << 25
+    }
+})
+
+
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
@@ -29,7 +44,7 @@ client.on('interactionCreate', async interaction => {
   if (!command) return
 
   try {
-    await command.execute(interaction)
+    await command.execute({client, interaction})
   } catch (error) {
     console.error(error)
     await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
