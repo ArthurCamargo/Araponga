@@ -1,26 +1,39 @@
-const { Client, GatewayIntentBits }= require('discord.js')
+const fs = require('node:fs') // Can make file system requests
+const path = require('node:path') // Used to facilitated using paths
+
+const { Client, Collection, GatewayIntentBits } = require('discord.js')
 const { token } = require('./config.json')
 
-client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+
+client.commands = new Collection()
+const commandsPath = path.join(__dirname, 'commands')
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'))
+
+for (const file of commandFiles) {
+  const filePath = path.join(commandsPath, file)
+  const command = require(filePath)
+
+  client.commands.set(command.data.name, command)
+}
 
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-});
-
+  console.log(`Logged in as ${client.user.tag}!`)
+})
 
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isChatInputCommand()) return
 
-	const { commandName } = interaction;
+  const command = interaction.client.commands.get(interaction.commandName)
 
-	if (commandName === 'ping') {
-		await interaction.reply('Pong!');
-	} else if (commandName === 'server') {
-		await interaction.reply('Server info.');
-	} else if (commandName === 'user') {
-		await interaction.reply('User info.');
-	}
-});
+  if (!command) return
 
+  try {
+    await command.execute(interaction)
+  } catch (error) {
+    console.error(error)
+    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
+  }
+})
 
-client.login(token);
+client.login(token)
