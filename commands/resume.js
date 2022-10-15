@@ -16,7 +16,7 @@ module.exports = {
           return
       }
 
-      queue.play();
+      queue.setPaused(false);
 
       await interaction.reply("Resumed the song, welcome to hell again!")
   }

@@ -16,7 +16,7 @@ module.exports = {
           return
       }
 
-      queue.stop();
+      queue.setPaused(true);
 
       await interaction.reply("Stopped the song, now we can be happy again!")
   }

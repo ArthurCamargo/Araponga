@@ -18,10 +18,14 @@ module.exports = {
 
       queue.skip();
 
+
+    
+      const currentSong = queue.current;
+
       await interaction.reply({
           embeds: [
               new EmbedBuilder()
-                .setDescription('Skipped ** ${currentSong.title} ** ')
+                .setDescription(`Skipped ** ${currentSong.title} ** `)
                 .setThumbnail(currentSong.thumbnail)
           ]
       })
